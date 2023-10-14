@@ -4,17 +4,16 @@ PRECACHE=$2
 LAYOUT_DIR=$3
 L1_MODE=$4
 
-INCLUDE_NODE6=${INCLUDE_NODE6:-true}
+INCLUDE_NODE10=${INCLUDE_NODE10:-true}
 
 CONTAINER_URL=https://vstsagenttools.blob.core.windows.net/tools
 
 NODE_URL=https://nodejs.org/dist
 if [[ "$PACKAGERUNTIME" == "linux-musl-x64" ]]; then
     NODE_URL=https://unofficial-builds.nodejs.org/download/release
-    INCLUDE_NODE6=false
+    INCLUDE_NODE10=false
 fi
 
-NODE_VERSION="6.17.1"
 NODE10_VERSION="10.24.1"
 NODE16_VERSION="16.20.2"
 NODE20_VERSION="20.3.1"
@@ -169,12 +168,11 @@ if [[ "$PACKAGERUNTIME" == "win-x"* ]]; then
 
     acquireExternalTool "https://dist.nuget.org/win-x86-commandline/v3.4.4/nuget.exe" nuget
 
-    if [[ "$INCLUDE_NODE6" == "true" ]]; then
-        acquireExternalTool "${NODE_URL}/v${NODE_VERSION}/${PACKAGERUNTIME}/node.exe" node/bin
-        acquireExternalTool "${NODE_URL}/v${NODE_VERSION}/${PACKAGERUNTIME}/node.lib" node/bin
+    if [[ "$INCLUDE_NODE10" == "true" ]]; then
+        acquireExternalTool "${NODE_URL}/v${NODE10_VERSION}/${PACKAGERUNTIME}/node.exe" node10/bin
+        acquireExternalTool "${NODE_URL}/v${NODE10_VERSION}/${PACKAGERUNTIME}/node.lib" node10/bin
     fi
-    acquireExternalTool "${NODE_URL}/v${NODE10_VERSION}/${PACKAGERUNTIME}/node.exe" node10/bin
-    acquireExternalTool "${NODE_URL}/v${NODE10_VERSION}/${PACKAGERUNTIME}/node.lib" node10/bin
+
     acquireExternalTool "${NODE_URL}/v${NODE16_VERSION}/${PACKAGERUNTIME}/node.exe" node16/bin
     acquireExternalTool "${NODE_URL}/v${NODE16_VERSION}/${PACKAGERUNTIME}/node.lib" node16/bin
     acquireExternalTool "${NODE_URL}/v${NODE20_VERSION}/${PACKAGERUNTIME}/node.exe" node20/bin
@@ -186,10 +184,9 @@ else
 
     if [[ "$PACKAGERUNTIME" == "osx-arm64" ]]; then
         ARCH="darwin-x64"
-        if [[ "$INCLUDE_NODE6" == "true" ]]; then
-            acquireExternalTool "${NODE_URL}/v${NODE_VERSION}/node-v${NODE_VERSION}-${ARCH}.tar.gz" node fix_nested_dir
+        if [[ "$INCLUDE_NODE10" == "true" ]]; then
+            acquireExternalTool "${NODE_URL}/v${NODE10_VERSION}/node-v${NODE10_VERSION}-${ARCH}.tar.gz" node10 fix_nested_dir
         fi
-        acquireExternalTool "${NODE_URL}/v${NODE10_VERSION}/node-v${NODE10_VERSION}-${ARCH}.tar.gz" node10 fix_nested_dir
 
         ARCH="darwin-arm64"
         acquireExternalTool "${NODE_URL}/v${NODE16_VERSION}/node-v${NODE16_VERSION}-${ARCH}.tar.gz" node16 fix_nested_dir
@@ -204,10 +201,10 @@ else
             *) echo "Unknown PACKAGERUNTIME: ${PACKAGERUNTIME}"; exit 1;;
         esac
 
-        if [[ "$INCLUDE_NODE6" == "true" ]]; then
-            acquireExternalTool "${NODE_URL}/v${NODE_VERSION}/node-v${NODE_VERSION}-${ARCH}.tar.gz" node fix_nested_dir
+        if [[ "$INCLUDE_NODE10" == "true" ]]; then
+            acquireExternalTool "${NODE_URL}/v${NODE10_VERSION}/node-v${NODE10_VERSION}-${ARCH}.tar.gz" node10 fix_nested_dir
         fi
-        acquireExternalTool "${NODE_URL}/v${NODE10_VERSION}/node-v${NODE10_VERSION}-${ARCH}.tar.gz" node10 fix_nested_dir
+      
         acquireExternalTool "${NODE_URL}/v${NODE16_VERSION}/node-v${NODE16_VERSION}-${ARCH}.tar.gz" node16 fix_nested_dir
         acquireExternalTool "${NODE_URL}/v${NODE20_VERSION}/node-v${NODE20_VERSION}-${ARCH}.tar.gz" node20 fix_nested_dir
     fi

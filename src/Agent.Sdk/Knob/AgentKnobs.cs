@@ -518,5 +518,13 @@ namespace Agent.Sdk.Knob
             new RuntimeKnobSource("AZP_AGENT_IGNORE_VSTSTASKLIB"),
             new EnvironmentKnobSource("AZP_AGENT_IGNORE_VSTSTASKLIB"),
             new BuiltInDefaultKnobSource("false"));
+
+        public static readonly Knob InstallOldNodeRunners = new Knob(
+           nameof(InstallOldNodeRunners),
+           "Allow to install old Node runners",
+           new RuntimeKnobSource("AGENT_INSTALL_OLD_NODE_RUNNERS"),
+           new EnvironmentKnobSource("AGENT_INSTALL_OLD_NODE_RUNNERS"),
+           new BuiltInDefaultKnobSource(string.Empty));
+
     }
 }

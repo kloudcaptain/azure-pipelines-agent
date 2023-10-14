@@ -13,6 +13,8 @@ using System.Linq;
 using System.Diagnostics;
 using Agent.Sdk;
 using Agent.Sdk.Knob;
+using Microsoft.VisualStudio.Services.BlobStore.WebApi.Contracts;
+using BuildXL.Cache.ContentStore.UtilitiesCore.Internal;
 
 namespace Microsoft.VisualStudio.Services.Agent.Worker
 {
@@ -159,6 +161,30 @@ namespace Microsoft.VisualStudio.Services.Agent.Worker
                         {
                             Trace.Error(ex);
                             context.Error(ex);
+                        }
+                    }
+
+                    //Check if we need to install old node runners
+                    var requiredOldNodeRunnersValue = AgentKnobs.InstallOldNodeRunners.GetValue(context).AsString();
+                    if (!string.IsNullOrEmpty(requiredOldNodeRunnersValue))
+                    {
+                        var requiredOldNodeRunners = requiredOldNodeRunnersValue.Split(';');
+                        foreach (var version in requiredOldNodeRunners)
+                        {
+                            var installer = new Pipelines.TaskStep()
+                            {
+                                Id = Guid.Parse("31C75B2B-BCDF-4706-8D7C-4DA6A1959BC5"),
+                                DisplayName = "Download Node 6 runner",
+                                Reference = new Pipelines.TaskStepDefinitionReference()
+                                {
+                                    Id = Guid.Parse("31C75B2B-BCDF-4706-8D7C-4DA6A1959BC2"),
+                                    Name = "NodeTaskRunnerInstaller",
+                                    Version = "0.229.0",
+                                }
+                            };
+                            installer.Inputs.Add("runnerVersion", version);
+
+                            message.Steps.Insert(0, installer);
                         }
                     }
 
