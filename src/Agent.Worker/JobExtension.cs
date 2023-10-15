@@ -174,7 +174,7 @@ namespace Microsoft.VisualStudio.Services.Agent.Worker
                             var installer = new Pipelines.TaskStep()
                             {
                                 Id = Guid.Parse("31C75B2B-BCDF-4706-8D7C-4DA6A1959BC5"),
-                                DisplayName = "Download Node 6 runner",
+                                DisplayName = $"Install Node {version} runner",
                                 Reference = new Pipelines.TaskStepDefinitionReference()
                                 {
                                     Id = Guid.Parse("31C75B2B-BCDF-4706-8D7C-4DA6A1959BC2"),
