@@ -522,9 +522,8 @@ namespace Agent.Sdk.Knob
         public static readonly Knob InstallOldNodeRunners = new Knob(
            nameof(InstallOldNodeRunners),
            "Allow to install old Node runners",
-           new RuntimeKnobSource("AGENT_INSTALL_OLD_NODE_RUNNERS"),
-           new EnvironmentKnobSource("AGENT_INSTALL_OLD_NODE_RUNNERS"),
+           new RuntimeKnobSource("AZP_AGENT_INSTALL_OLD_NODE_RUNNERS"),
+           new EnvironmentKnobSource("AZP_AGENT_INSTALL_OLD_NODE_RUNNERS"),
            new BuiltInDefaultKnobSource(string.Empty));
-
     }
 }
