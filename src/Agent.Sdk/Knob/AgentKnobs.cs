@@ -284,12 +284,6 @@ namespace Agent.Sdk.Knob
             new EnvironmentKnobSource("SYSTEM_UNSAFEALLOWMULTILINESECRET"),
             new BuiltInDefaultKnobSource("false"));
 
-        public static readonly Knob MaskUsingCredScanRegexes = new Knob(
-            nameof(MaskUsingCredScanRegexes),
-            "Use the CredScan regexes for masking secrets. CredScan is an internal tool developed at Microsoft to keep passwords and authentication keys from being checked in. This defaults to disabled, as there are performance problems with some task outputs.",
-            new EnvironmentKnobSource("AZP_USE_CREDSCAN_REGEXES"),
-            new BuiltInDefaultKnobSource("false"));
-
         public static readonly Knob MaskedSecretMinLength = new Knob(
             nameof(MaskedSecretMinLength),
             "Specify the length of the secrets, which, if shorter, will be ignored in the logs.",
@@ -479,6 +473,13 @@ namespace Agent.Sdk.Knob
             new EnvironmentKnobSource("AZP_75787_ENABLE_COLLECT"),
             new BuiltInDefaultKnobSource("false"));
 
+        public static readonly Knob ProcessHandlerEnableNewLogic = new Knob(
+            nameof(ProcessHandlerEnableNewLogic),
+            "Enables new sanitization logic for process handler",
+            new RuntimeKnobSource("AZP_75787_ENABLE_NEW_PH_LOGIC"),
+            new EnvironmentKnobSource("AZP_75787_ENABLE_NEW_PH_LOGIC"),
+            new BuiltInDefaultKnobSource("false"));
+
         public static readonly Knob DisableDrainQueuesAfterTask = new Knob(
             nameof(DisableDrainQueuesAfterTask),
             "Forces the agent to disable draining queues after each task",
@@ -512,7 +513,7 @@ namespace Agent.Sdk.Knob
             new EnvironmentKnobSource("AGENT_DISABLE_CLEAN_REPO_DEFAULT_VALUE"),
             new BuiltInDefaultKnobSource("false"));
 
-          public static readonly Knob IgnoreVSTSTaskLib = new Knob(
+        public static readonly Knob IgnoreVSTSTaskLib = new Knob(
             nameof(IgnoreVSTSTaskLib),
             "Ignores the VSTSTaskLib folder when copying tasks.",
             new RuntimeKnobSource("AZP_AGENT_IGNORE_VSTSTASKLIB"),
@@ -525,5 +526,12 @@ namespace Agent.Sdk.Knob
            new RuntimeKnobSource("AZP_AGENT_INSTALL_OLD_NODE_RUNNERS"),
            new EnvironmentKnobSource("AZP_AGENT_INSTALL_OLD_NODE_RUNNERS"),
            new BuiltInDefaultKnobSource(string.Empty));
+
+        public static readonly Knob CheckForTaskDeprecation = new Knob(
+            nameof(CheckForTaskDeprecation),
+            "If true, the agent will check in the 'Initialize job' step each task used in the job for task deprecation.",
+            new EnvironmentKnobSource("AZP_AGENT_CHECK_FOR_TASK_DEPRECATION"),
+            new BuiltInDefaultKnobSource("false"));
+
     }
 }
