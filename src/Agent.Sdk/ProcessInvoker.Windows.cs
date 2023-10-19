@@ -126,9 +126,8 @@ namespace Microsoft.VisualStudio.Services.Agent.Util
                 catch (Exception ex)
                 {
                     // Ignore all exceptions, since KillProcessTree is best effort.
-                    // Trace.Verbose("Ignore any catched exception during detecting process relationship.");
-                    // Trace.Verbose(ex.HResult.ToString());
-                    // Trace.Verbose(ex.ToString());
+                    Trace.Verbose("Ignore any catched exception during detecting process relationship.");
+                    Trace.Verbose(ex.ToString());
                 }
             }
 

@@ -242,15 +242,11 @@ namespace Microsoft.VisualStudio.Services.Agent.Util
             _proc.StartInfo.RedirectStandardError = true;
             _proc.StartInfo.RedirectStandardOutput = true;
 
-            Trace.Info($"_asyncStreamReaderCount {_asyncStreamReaderCount.ToString()}");
-
             // Ensure we process STDERR even the process exit event happen before we start read STDERR stream.
             if (_proc.StartInfo.RedirectStandardError)
             {
                 Interlocked.Increment(ref _asyncStreamReaderCount);
             }
-
-            Trace.Info($"_asyncStreamReaderCount {_asyncStreamReaderCount.ToString()}");
 
             // Ensure we process STDOUT even the process exit event happen before we start read STDOUT stream.
             if (_proc.StartInfo.RedirectStandardOutput)
@@ -258,7 +254,6 @@ namespace Microsoft.VisualStudio.Services.Agent.Util
                 Interlocked.Increment(ref _asyncStreamReaderCount);
             }
 
-            Trace.Info($"_asyncStreamReaderCount {_asyncStreamReaderCount.ToString()}");
             // If StandardErrorEncoding or StandardOutputEncoding is not specified the on the
             // ProcessStartInfo object, then .NET PInvokes to resolve the default console output
             // code page:
@@ -499,10 +494,6 @@ namespace Microsoft.VisualStudio.Services.Agent.Util
         private void ProcessExitedHandler(object sender, EventArgs e)
         {
             Trace.Info($"Exited process {_proc.Id} with exit code {_proc.ExitCode}");
-
-            Trace.Info($"_proc.StartInfo.RedirectStandardError {_proc.StartInfo.RedirectStandardError}");
-            Trace.Info($"_proc.StartInfo.RedirectStandardOutput {_proc.StartInfo.RedirectStandardOutput}");
-            Trace.Info($"_asyncStreamReaderCount {_asyncStreamReaderCount}");
             if ((_proc.StartInfo.RedirectStandardError || _proc.StartInfo.RedirectStandardOutput) && _asyncStreamReaderCount != 0)
             {
                 _waitingOnStreams = true;
@@ -525,8 +516,6 @@ namespace Microsoft.VisualStudio.Services.Agent.Util
         {
             Task.Run(() =>
             {
-                Trace.Info("Started read stream");
-
                 while (!reader.EndOfStream)
                 {
                     string line = reader.ReadLine();

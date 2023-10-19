@@ -57,9 +57,6 @@ namespace Microsoft.VisualStudio.Services.Agent.Tests
                     processInvoker.Initialize(hc);
                     Stopwatch watch = Stopwatch.StartNew();
                     Task execTask;
-                    
-                    trace.Info($"Before start executing elapsed ms: {watch.ElapsedMilliseconds}");
-
                     if (TestUtil.IsWindows())
                     {
                         execTask = processInvoker.ExecuteAsync("", "cmd", $"/c \"timeout {SecondsToRun} > nul\"", null, tokenSource.Token);
@@ -69,15 +66,9 @@ namespace Microsoft.VisualStudio.Services.Agent.Tests
                         execTask = processInvoker.ExecuteAsync("", "bash", $"-c \"sleep {SecondsToRun}s\"", null, tokenSource.Token);
                     }
 
-                    trace.Info($"After start executing elapsed ms: {watch.ElapsedMilliseconds}");
-
                     await Task.Delay(500);
-
-                    trace.Info($"After delay elapsed ms: {watch.ElapsedMilliseconds}");
-
                     tokenSource.Cancel();
 
-                    trace.Info($"After cancelling elapsed ms: {watch.ElapsedMilliseconds}");
                     try
                     {
                         await execTask;
