@@ -3,18 +3,21 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Threading.Tasks;
-using Microsoft.TeamFoundation.DistributedTask.Expressions;
-using Microsoft.TeamFoundation.DistributedTask.WebApi;
-using Pipelines = Microsoft.TeamFoundation.DistributedTask.Pipelines;
-using Microsoft.VisualStudio.Services.Agent.Util;
-using System.Linq;
 using System.Diagnostics;
+using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
+
 using Agent.Sdk;
 using Agent.Sdk.Knob;
-using Microsoft.VisualStudio.Services.BlobStore.WebApi.Contracts;
-using BuildXL.Cache.ContentStore.UtilitiesCore.Internal;
+
+using Microsoft.TeamFoundation.DistributedTask.Expressions;
+using Microsoft.TeamFoundation.DistributedTask.WebApi;
+using Microsoft.VisualStudio.Services.Agent.Util;
+
+using Newtonsoft.Json;
+
+using Pipelines = Microsoft.TeamFoundation.DistributedTask.Pipelines;
 
 namespace Microsoft.VisualStudio.Services.Agent.Worker
 {
@@ -164,33 +167,13 @@ namespace Microsoft.VisualStudio.Services.Agent.Worker
                         }
                     }
 
-                    //Check if we need to install old node runners
-                    var requiredOldNodeRunnersValue = AgentKnobs.InstallOldNodeRunners.GetValue(context).AsString();
-                    if (!string.IsNullOrEmpty(requiredOldNodeRunnersValue))
-                    {
-                        var requiredOldNodeRunners = requiredOldNodeRunnersValue.Split(';');
-                        foreach (var version in requiredOldNodeRunners)
-                        {
-                            var installer = new Pipelines.TaskStep()
-                            {
-                                Id = Guid.Parse("31C75B2B-BCDF-4706-8D7C-4DA6A1959BC5"),
-                                DisplayName = $"Install Node {version} runner",
-                                Reference = new Pipelines.TaskStepDefinitionReference()
-                                {
-                                    Id = Guid.Parse("31C75B2B-BCDF-4706-8D7C-4DA6A1959BC2"),
-                                    Name = "NodeTaskRunnerInstaller",
-                                    Version = "0.229.0",
-                                }
-                            };
-                            installer.Inputs.Add("runnerVersion", version);
+                    var taskManager = HostContext.GetService<ITaskManager>();
 
-                            message.Steps.Insert(0, installer);
-                        }
-                    }
+                    //Check if we need to install old node runners
+                    CheckAndInstallNodeRunner(context, message, taskManager);
 
                     // Download tasks if not already in the cache
                     Trace.Info("Downloading task definitions.");
-                    var taskManager = HostContext.GetService<ITaskManager>();
                     await taskManager.DownloadAsync(context, message.Steps);
 
                     // Parse all Task conditions.
@@ -371,7 +354,7 @@ namespace Microsoft.VisualStudio.Services.Agent.Worker
                     }
 
                     ArgUtil.NotNull(jobContext, nameof(jobContext)); // I am not sure why this is needed, but static analysis flagged all uses of jobContext below this point
-                    // create execution context for all pre-job steps
+                                                                     // create execution context for all pre-job steps
                     foreach (var step in preJobSteps)
                     {
                         if (PlatformUtil.RunningOnWindows && step is ManagementScriptStep)
@@ -678,6 +661,82 @@ namespace Microsoft.VisualStudio.Services.Agent.Worker
                 context.Output($"Fail to load and print machine setup info: {ex.Message}");
                 Trace.Error(ex);
             }
+        }
+
+        private void CheckAndInstallNodeRunner(IExecutionContext context, Pipelines.AgentJobRequestMessage message, ITaskManager taskManager )
+        {
+            var requiredOldNodeRunnersValue = AgentKnobs.InstallOldNodeRunners.GetValue(context).AsString();
+            if (!string.IsNullOrEmpty(requiredOldNodeRunnersValue))
+            {
+                // Parse and find node versions which is requested to be installed
+                var requiredOldNodeRunners = requiredOldNodeRunnersValue.Split(';');
+                Dictionary<string, bool> requiredInstallationVersion = new Dictionary<string, bool>();
+                foreach (var version in requiredOldNodeRunners)
+                {
+
+                    var nodeBin = PlatformUtil.RunningOnWindows ? "node.exe" : "node";
+                    var folderName = version == "6" ? "node" : "node" + version;
+                    // Check if we have any node 6 runners just skipp installation
+                    if (File.Exists(Path.Combine(HostContext.GetDirectory(WellKnownDirectory.Root),
+                        Constants.Path.ExternalsDirectory, folderName, nodeBin)))
+                    {
+                        continue;
+                    }
+                    requiredInstallationVersion.Add(version, false);
+                }
+
+                if (requiredInstallationVersion.Count > 0)
+                {
+                    //Check which version of node is used in the jobs
+                    foreach (var task in message?.Steps.OfType<Pipelines.TaskStep>())
+                    {
+                        var taskDefinition = taskManager.Load(task);
+                        // Deserialize the JSON.
+                        string file = Path.Combine(taskDefinition.Directory, Constants.Path.TaskJsonFile);
+                        Trace.Info($"Loading task definition '{file}'.");
+                        string json = File.ReadAllText(file);
+                        taskDefinition.Data = JsonConvert.DeserializeObject<DefinitionData>(json);
+
+                        foreach (HandlerData handlerData in (taskDefinition.Data?.Execution?.All as IEnumerable<HandlerData> ?? new HandlerData[0]))
+                        {
+                            if (handlerData is NodeHandlerData && requiredInstallationVersion.ContainsKey("6"))
+                            {
+                                Trace.Info("There is task with node 6 runner. Try to Install Node 6 Runner");
+
+                                requiredInstallationVersion["6"] = true;
+                            }
+                            if (handlerData is Node10HandlerData && requiredInstallationVersion.ContainsKey("10"))
+                            {
+                                Trace.Info("There is task with node 10 runner. Try to Install Node 10 Runner");
+
+                                requiredInstallationVersion["10"] = true;
+                            }
+
+                        }
+                    }
+
+                }
+
+                foreach (var version in requiredInstallationVersion.Where(w => w.Value))
+                {
+                    var installer = new Pipelines.TaskStep()
+                    {
+                        Id = Guid.Parse("31C75B2B-BCDF-4706-8D7C-4DA6A1959BC5"),
+                        DisplayName = $"Install Node {version.Key} runner",
+                        Reference = new Pipelines.TaskStepDefinitionReference()
+                        {
+                            Id = Guid.Parse("31C75B2B-BCDF-4706-8D7C-4DA6A1959BC2"),
+                            Name = "NodeTaskRunnerInstaller",
+                            Version = "0.229.0",
+
+                        }
+                    };
+                    installer.Inputs.Add("runnerVersion", version.Key);
+
+                    message?.Steps.Insert(0, installer);
+                }
+            }
+
         }
     }
 
