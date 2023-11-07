@@ -34,5 +34,6 @@ namespace Agent.Sdk.Util
         public static readonly string JsonStringEscape = "ValueEncoderJsonStringEscape";
         public static readonly string UriDataEscape = "ValueEncoderUriDataEscape";
         public static readonly string BackslashEscape = "ValueEncoderBackslashEscape";
+        public static readonly string RemoveSpecialSymbols = "ValueEncoderRemoveSpecialSymbols";
     }
 }
