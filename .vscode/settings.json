@@ -2,4 +2,3 @@
     "dotnet-test-explorer.testProjectPath": "src/Test/Test.csproj",
     "dotnet-test-explorer.testArguments": "--no-build"
 }
-product
